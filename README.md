@@ -1,84 +1,198 @@
-# n8n Workflow Runner
+# n8n Workflow Runner for CloudBees
 
-Run n8n workflows locally and in CloudBees Unify CI/CD pipelines.
+A CloudBees action that executes n8n workflows in your CI/CD pipelines.
 
-## Quick Start
+> **Note:** This document refers to two types of workflows:
+> - **n8n workflows** = Workflow automations created in n8n (the workflow engine)
+> - **CloudBees workflows** = CI/CD pipeline definitions (YAML files in `.cloudbees/workflows/`)
 
-### 1. Import Existing Workflows (First Time)
+## What This Provides
+
+- **CloudBees Action** - Execute n8n workflows from your repository in CloudBees workflows (CI/CD pipelines)
+- **Structured Outputs** - Access n8n workflow results as JSON in subsequent pipeline steps
+- **Parameter Passing** - Send data to n8n workflows via JSON parameters
+- **Optional Development Tools** - Makefile commands to develop and test n8n workflows locally (if you clone this repo)
+
+## Using the Action
+
+Add this action to your CloudBees workflow in three steps:
+
+### 1. Add n8n Workflow Files to Your Repository
+
+Export your n8n workflows as JSON files and add them to your repository in an `n8n-workflows/` directory (or any directory you prefer).
+
+**How to export from n8n:**
+- Use n8n's built-in export feature (Settings → Export)
+- Or use the tools in this repo if you've cloned it (see [Local Development](#local-development-optional) below)
 
 ```bash
-make import-workflows
+your-repo/
+└── n8n-workflows/
+    └── my-workflow.json
 ```
 
-This imports workflows from `n8n-workflows/` into your local database.
+### 2. Configure Your n8n Workflow
 
-### 2. Start the n8n Server (Optional - for editing)
+n8n workflows must use a **manual trigger** and should extract environment variables using a **Set node**:
+
+**Example workflow structure:**
+```
+Manual Trigger → Set Node (extract env vars) → Your Logic → Output Node
+```
+
+**Set Node Configuration:**
+Extract environment variables as JSON fields:
+- `NAME` from `{{ $env.NAME }}`
+- `API_KEY` from `{{ $env.API_KEY }}`
+- etc.
+
+The **last node's output** becomes the action's result.
+
+### 3. Use the Action in Your CloudBees Workflow
+
+In your CloudBees workflow (CI/CD pipeline definition), add a step that uses this action:
+
+```yaml
+- name: Execute n8n workflow
+  id: process
+  uses: swashbuck1r/n8n-workflows@main  # Reference this action repo
+  with:
+    workflow-name: my-workflow           # Name of your n8n workflow
+    parameters: '{"NAME":"Alice","API_KEY":"secret123"}'
+    workflows-dir: n8n-workflows         # Directory in YOUR repo
+
+- name: Use the n8n workflow results
+  run: |
+    echo '${{ steps.process.outputs.result-json }}' | jq '.data'
+```
+
+The action will:
+1. Import your n8n workflows from your repository's `n8n-workflows/` directory
+2. Execute the specified n8n workflow with the provided parameters
+3. Return the results as structured JSON outputs
+
+See [ACTION.md](ACTION.md) for complete action documentation.
+
+## Local Development (Optional)
+
+If you clone this repository, you can use the included tools to develop and test n8n workflows locally.
+
+### Start n8n Server
 
 ```bash
 make start-server
 ```
 
-Then open http://localhost:5678 to create/edit workflows using the UI.
+Opens n8n UI at http://localhost:5678 to create/edit n8n workflows.
 
-### 3. Export Workflows After Editing
+### Export n8n Workflows
 
 ```bash
 make export-workflows
 ```
 
-This saves workflows from the database to `n8n-workflows/` directory (for git).
+Saves n8n workflows from the database to `n8n-workflows/` directory for version control.
 
-### 4. List Workflows
-
-```bash
-make list-workflows
-```
-
-### 5. Run a Workflow
+### Test Locally
 
 ```bash
 make run-ci WORKFLOW_NAME=hello-workflow
 ```
 
-Or with custom environment variables:
+Or with custom parameters:
 
 ```bash
 NAME=Alice make run-ci WORKFLOW_NAME=hello-workflow
 ```
 
-### 6. Stop the Server
+## n8n Workflow Requirements
 
-```bash
-make stop-server
+Your n8n workflows must be configured correctly to work with this action.
+
+### Manual Trigger Required
+
+n8n workflows **must use a manual trigger**, not webhook triggers. This allows the action to execute them programmatically.
+
+### Extracting Environment Variables
+
+Use a **Set node** immediately after the manual trigger to extract environment variables passed via the `parameters` input:
+
+**Set Node Configuration:**
+1. Add field: `name` → Value: `{{ $env.NAME }}`
+2. Add field: `api_key` → Value: `{{ $env.API_KEY }}`
+3. Add additional fields as needed
+
+These fields become available as JSON data for downstream nodes.
+
+### Output Data
+
+The **last node executed** in your workflow determines the action's output. The result is available as:
+- `steps.<step-id>.outputs.result-json` - Full result data
+- `steps.<step-id>.outputs.summary-json` - Execution summary
+- `steps.<step-id>.outputs.execution-json` - Full execution details
+
+## Example n8n Workflow
+
+Here's a complete n8n workflow structure that:
+1. Receives a `NAME` parameter
+2. Processes it
+3. Returns a greeting
+
+**Workflow Structure:**
+```
+┌─────────────────┐
+│ Manual Trigger  │
+└────────┬────────┘
+         │
+┌────────▼────────┐
+│  Set (Extract)  │  ← Extract $env.NAME to name field
+└────────┬────────┘
+         │
+┌────────▼────────┐
+│  Code (Process) │  ← Process: { message: "Hello", name: $json.name }
+└────────┬────────┘
+         │
+    (Output) ← Last node output becomes action result
 ```
 
-## How It Works
+See `n8n-workflows/hello-workflow.json` for a working example.
 
-- **Workflow Files**: Version-controlled JSON files in `n8n-workflows/` directory
-- **Local Database**: `.n8n/` directory (git-ignored, regenerated from workflow files)
-- **Server Mode**: `make start-server` runs n8n UI for editing workflows
-- **Export/Import**: Use `export-workflows` and `import-workflows` to sync between database and files
-- **CI/CD**: The `run-ci` command automatically imports workflows before execution
+## Advanced Usage
 
-## CloudBees Unify Integration
-
-### Using the Reusable Action (Recommended)
-
-The easiest way to run n8n workflows in CloudBees is using the included action:
+### Multiple Parameters
 
 ```yaml
-- name: Run n8n workflow
-  uses: ./
-  with:
-    workflow-name: hello-workflow
-    parameters: '{"NAME":"Alice","API_KEY":"secret"}'
+parameters: |
+  {
+    "NAME": "Alice",
+    "EMAIL": "alice@example.com",
+    "ENVIRONMENT": "production",
+    "DEBUG": "true"
+  }
 ```
 
-See [ACTION.md](ACTION.md) for complete documentation.
+### Using Secrets
 
-### Direct Docker Usage Example
+```yaml
+parameters: |
+  {
+    "API_KEY": "${{ secrets.MY_API_KEY }}",
+    "DATABASE_URL": "${{ secrets.DB_URL }}"
+  }
+```
 
-This example shows how to run n8n workflows directly in CloudBees Unify:
+### Conditional Execution
+
+```yaml
+- name: Run workflow
+  if: ${{ inputs.environment == 'production' }}
+  uses: your-org/your-repo@main
+  with:
+    workflow-name: deploy-workflow
+    parameters: '{"ENV":"${{ inputs.environment }}"}'
+```
+
+## CloudBees Integration Details
 
 ```yaml
 apiVersion: automation.cloudbees.io/v1alpha1
@@ -99,7 +213,7 @@ jobs:
   run-workflow:
     steps:
       - name: Checkout code
-        uses: cloudbees-io/checkout@v1
+        uses: cloudbees-io/checkout@v2
 
       - name: Execute n8n workflow
         uses: docker://docker.n8n.io/n8nio/n8n:latest
@@ -166,15 +280,37 @@ The workflow execution creates three files in `$CLOUDBEES_OUTPUTS`:
 
 Note: Filenames use hyphens instead of dots for compatibility with CloudBees step outputs.
 
-## Makefile Targets
+## Troubleshooting
 
-- `make import-workflows` - Import workflows from `n8n-workflows/` to database
-- `make export-workflows` - Export workflows from database to `n8n-workflows/`
+### n8n Workflow Not Found
+
+If the action reports "Workflow not found":
+1. Check that your n8n workflow JSON file exists in `n8n-workflows/` in **your repository**
+2. Verify the `workflow-name` input matches the n8n workflow's `name` field in the JSON file
+3. Check the action logs for the list of available n8n workflows
+
+### Environment Variables Not Working
+
+If `$env.VARIABLE` returns empty in your n8n workflow:
+1. Verify the variable is in the `parameters` JSON in your CloudBees workflow step
+2. Check the Set node in your n8n workflow is using `{{ $env.VARIABLE }}` syntax
+3. Ensure `N8N_BLOCK_ENV_ACCESS_IN_NODE` is not set to `true`
+
+### Output Not Showing
+
+If the action completes but outputs are empty:
+1. Ensure your n8n workflow has a manual trigger (not webhook)
+2. Check the last node in your n8n workflow produces output
+3. Review `execution-json` output for the full n8n workflow execution details
+
+## Makefile Targets (Local Development)
+
 - `make start-server` - Start n8n UI server (port 5678)
 - `make stop-server` - Stop the server
+- `make export-workflows` - Export workflows from database to `n8n-workflows/`
+- `make import-workflows` - Import workflows from `n8n-workflows/` to database
 - `make list-workflows` - List all workflows in the database
-- `make run WORKFLOW_NAME=<name>` - Execute a specific workflow (raw output)
-- `make run-ci WORKFLOW_NAME=<name>` - Execute workflow with structured CI output (saves to `outputs/`)
+- `make run-ci WORKFLOW_NAME=<name>` - Execute workflow with structured output
 - `make clean` - Remove .n8n directory
 
 ## Environment Variables
@@ -200,34 +336,84 @@ NAME=Alice make run-ci WORKFLOW_NAME=hello-workflow
 
 This overrides any values in the `.env` file.
 
-## Directory Structure
+## Repository Structure
+
+### This Action Repository
+
+This repository contains the action and optional development tools:
 
 ```
 .
-├── n8n-workflows/     # Workflow JSON files (version controlled)
-├── .n8n/              # n8n database (git-ignored, regenerated from n8n-workflows/)
-├── run-workflow.js    # CI/CD execution script
-├── action.yml         # CloudBees reusable action definition
-├── ACTION.md          # Action documentation
-├── .env               # Environment variables (git-ignored)
-├── .env.example       # Example environment file
-├── Makefile           # Build and run commands
-└── README.md          # This file
+├── action.yml               # CloudBees action definition
+├── run-workflow.js          # n8n workflow execution script
+├── ACTION.md                # Action API reference
+├── README.md                # This file
+│
+├── Makefile                 # Optional: local development commands
+├── n8n-workflows/           # Optional: example n8n workflows
+│   └── hello-workflow.json
+│
+└── .n8n/                    # Optional: local n8n database (git-ignored)
 ```
 
-## Workflow Development Cycle
+### Your Repository Structure
 
-1. **Import** - `make import-workflows` - Load workflows from git into local database
-2. **Edit** - `make start-server` - Open UI to edit workflows
-3. **Export** - `make export-workflows` - Save changes back to git (with clean formatting)
-4. **Commit** - `git add n8n-workflows/ && git commit`
-5. **CI/CD** - Workflows run automatically in CloudBees from the `n8n-workflows/` directory
+When using this action, your repository only needs the n8n workflow JSON files:
+
+```
+your-repo/
+├── .cloudbees/
+│   └── workflows/
+│       └── pipeline.yaml        # Your CloudBees workflow (references this action)
+│
+└── n8n-workflows/               # Your n8n workflow JSON files
+    ├── deploy.json
+    └── process-data.json
+```
+
+The action automatically finds `run-workflow.js` and other dependencies from this repo when you reference it.
+
+## Development Workflow (If Using Local Tools)
+
+This workflow applies if you've cloned this repository to develop n8n workflows locally.
+
+### Creating New n8n Workflows
+
+1. **Start n8n Server**
+   ```bash
+   make start-server
+   ```
+
+2. **Create n8n Workflow** in UI at http://localhost:5678
+   - Add a **Manual Trigger** node
+   - Add a **Set** node to extract env vars (e.g., `name` from `{{ $env.NAME }}`)
+   - Add your n8n workflow logic
+   - Ensure the last node produces the output you want
+
+3. **Export n8n Workflows**
+   ```bash
+   make export-workflows
+   git add n8n-workflows/
+   git commit -m "Add new n8n workflow"
+   ```
+
+4. **Test Locally**
+   ```bash
+   make run-ci WORKFLOW_NAME=your-workflow
+   ```
+
+5. **Use in CloudBees**
+   ```bash
+   git push
+   # n8n workflow JSON files are now in your repo
+   # Reference them in your CloudBees workflow using this action
+   ```
 
 ### Export Features
 
 The `export-workflows` command automatically:
 - Exports all workflows from the database
-- Renames files to use workflow names (e.g., `hello-workflow.json`)
-- Formats JSON with proper indentation (2 spaces)
-- Sorts keys alphabetically for consistent git diffs
+- Renames files using workflow names (e.g., `hello-workflow.json`)
+- Formats JSON with 2-space indentation
+- Sorts keys alphabetically for clean git diffs
 - Handles duplicate workflow names by appending the ID
