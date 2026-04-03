@@ -1,0 +1,48 @@
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: action
+name: run-n8n-workflow
+description: Execute n8n workflows with JSON parameter support
+
+inputs:
+  workflow-name:
+    description: Name of the n8n workflow to execute
+    required: true
+  parameters:
+    description: Workflow parameters as JSON string (e.g., '{"NAME":"value","API_KEY":"secret"}')
+    required: false
+    default: '{}'
+  workflows-dir:
+    description: Directory containing n8n workflow JSON files
+    required: false
+    default: n8n-workflows
+
+outputs:
+  result-json:
+    description: Workflow execution result data
+    value: ${{ steps.execute.outputs.result-json }}
+  summary-json:
+    description: Workflow execution summary
+    value: ${{ steps.execute.outputs.summary-json }}
+  execution-json:
+    description: Full workflow execution details
+    value: ${{ steps.execute.outputs.execution-json }}
+
+runs:
+  using: composite
+  steps:
+    - id: execute
+      name: Execute n8n workflow
+      uses: docker://docker.n8n.io/n8nio/n8n:latest
+      shell: bash
+      run: |
+        # Parse parameters JSON and export as environment variables
+        echo '${{ inputs.parameters }}' | jq -r 'to_entries[] | "export \(.key)=\(.value | @sh)"' > /tmp/params.env
+        source /tmp/params.env
+
+        # Set required n8n environment variables
+        export WORKFLOW_NAME='${{ inputs.workflow-name }}'
+        export N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+        export WORKFLOWS_DIR='${{ cloudbees.workspace }}/${{ inputs.workflows-dir }}'
+
+        # Execute the workflow
+        /usr/local/bin/node ${{ cloudbees.workspace }}/run-workflow.js

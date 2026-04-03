@@ -60,9 +60,25 @@ make stop-server
 - **Export/Import**: Use `export-workflows` and `import-workflows` to sync between database and files
 - **CI/CD**: The `run-ci` command automatically imports workflows before execution
 
-## CloudBees Unify Workflow Example
+## CloudBees Unify Integration
 
-This example shows how to run n8n workflows in CloudBees Unify and capture structured results.
+### Using the Reusable Action (Recommended)
+
+The easiest way to run n8n workflows in CloudBees is using the included action:
+
+```yaml
+- name: Run n8n workflow
+  uses: ./
+  with:
+    workflow-name: hello-workflow
+    parameters: '{"NAME":"Alice","API_KEY":"secret"}'
+```
+
+See [ACTION.md](ACTION.md) for complete documentation.
+
+### Direct Docker Usage Example
+
+This example shows how to run n8n workflows directly in CloudBees Unify:
 
 ```yaml
 apiVersion: automation.cloudbees.io/v1alpha1
@@ -191,6 +207,8 @@ This overrides any values in the `.env` file.
 ├── n8n-workflows/     # Workflow JSON files (version controlled)
 ├── .n8n/              # n8n database (git-ignored, regenerated from n8n-workflows/)
 ├── run-workflow.js    # CI/CD execution script
+├── action.yml         # CloudBees reusable action definition
+├── ACTION.md          # Action documentation
 ├── .env               # Environment variables (git-ignored)
 ├── .env.example       # Example environment file
 ├── Makefile           # Build and run commands
