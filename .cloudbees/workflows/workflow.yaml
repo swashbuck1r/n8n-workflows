@@ -9,7 +9,7 @@ jobs:
   run-workflow:
     steps:
       - name: Checkout code
-        uses: cloudbees-io/checkout@v1
+        uses: cloudbees-io/checkout@v2
 
       - name: Execute n8n workflow
         id: execute-workflow
