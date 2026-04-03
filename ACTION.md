@@ -116,11 +116,20 @@ jobs:
           echo '${{ steps.process.outputs.result-json }}' | jq '.data'
 ```
 
+## How It Works
+
+The action is self-contained and manages its own dependencies:
+
+1. **Automatic Checkout**: The action checks out its own source code to a private `.n8n-action/` directory
+2. **Isolated Execution**: The action's scripts run from `.n8n-action/` without polluting your workspace
+3. **Workflow Import**: Workflows are loaded from your specified `workflows-dir` (default: `n8n-workflows/`)
+4. **Environment Variables**: The `parameters` JSON is converted to environment variables for n8n
+
 ## Requirements
 
-- `run-workflow.js` must exist in the workspace root
-- `n8n-workflows/` directory must contain workflow JSON files
+- `n8n-workflows/` directory must contain workflow JSON files in your workspace
 - Workflows should use manual triggers (not webhook triggers)
+- CloudBees workspace must be checked out before using this action
 
 ## Environment Variables in n8n
 

@@ -20,10 +20,10 @@ jobs:
 
       - name: Execute n8n workflow
         id: execute-workflow
-        uses: ./
+        uses: swashbuckler/n8n-workflows@main
         with:
-          workflow-name: ${{ inputs.workflow_name }}
-          parameters: '{"NAME":"${{ inputs.input_name }}"}'
+          workflow-name: "hello-workflow"
+          parameters: '{"NAME":"Alice"}'
           workflows-dir: n8n-workflows
 
       - name: Display results summary
