@@ -1,23 +1,20 @@
 apiVersion: automation.cloudbees.io/v1alpha1
 kind: workflow
 name: run-n8n-workflow
-
 on:
   workflow_dispatch:
     inputs:
       workflow_name:
-        description: "Name of the n8n workflow to execute"
-        default: "hello-workflow"
+        type: string
+        default: hello-workflow
       input_name:
-        description: "Name parameter to pass to workflow"
-        default: "CloudBees"
-
+        type: string
+        default: CloudBees
 jobs:
   run-workflow:
     steps:
       - name: Checkout code
         uses: cloudbees-io/checkout@v1
-
       - name: Execute n8n workflow
         uses: docker://docker.n8n.io/n8nio/n8n:latest
         with:
@@ -28,17 +25,14 @@ jobs:
           NAME: ${{ inputs.input_name }}
           N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
           WORKFLOWS_DIR: /workspace/n8n-workflows
-
       - name: Display results summary
         run: |
           echo "=== Execution Summary ==="
           cat $CLOUDBEES_OUTPUTS/summary.json | jq '.'
-
       - name: Display result data
         run: |
           echo "=== Result Data ==="
           cat $CLOUDBEES_OUTPUTS/result.json | jq '.data'
-
       - name: Check execution success
         run: |
           SUCCESS=$(cat $CLOUDBEES_OUTPUTS/summary.json | jq -r '.success')
