@@ -5,7 +5,7 @@ Complete API reference for the n8n workflow runner action.
 ## Basic Usage
 
 ```yaml
-- uses: your-org/your-repo@main
+- uses: your-org/your-repo@v1
   with:
     workflow-name: my-workflow
     parameters: '{"NAME":"value"}'
@@ -79,7 +79,7 @@ jobs:
 
       - name: Run workflow
         id: run
-        uses: your-org/your-repo@main
+        uses: your-org/your-repo@v1
         with:
           workflow-name: process-data
           parameters: |

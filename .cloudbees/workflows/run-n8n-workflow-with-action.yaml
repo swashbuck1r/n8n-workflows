@@ -20,7 +20,7 @@ jobs:
 
       - name: Execute n8n workflow
         id: execute-workflow
-        uses: swashbuck1r/n8n-workflows@main
+        uses: swashbuck1r/n8n-workflows@v1
         with:
           workflow-name: "hello-workflow"
           parameters: '{"NAME":"Alice"}'

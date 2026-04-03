@@ -55,7 +55,7 @@ In your CloudBees workflow (CI/CD pipeline definition), add a step that uses thi
 ```yaml
 - name: Execute n8n workflow
   id: process
-  uses: swashbuck1r/n8n-workflows@main  # Reference this action repo
+  uses: swashbuck1r/n8n-workflows@v1  # Reference this action repo
   with:
     workflow-name: my-workflow           # Name of your n8n workflow
     parameters: '{"NAME":"Alice","API_KEY":"secret123"}'
@@ -186,7 +186,7 @@ parameters: |
 ```yaml
 - name: Run workflow
   if: ${{ inputs.environment == 'production' }}
-  uses: your-org/your-repo@main
+  uses: your-org/your-repo@v1
   with:
     workflow-name: deploy-workflow
     parameters: '{"ENV":"${{ inputs.environment }}"}'
