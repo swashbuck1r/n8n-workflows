@@ -33,7 +33,7 @@ runs:
     - name: Checkout action source
       uses: cloudbees-io/checkout@v2
       with:
-        repository: swashbuck1r/n8n-workflows
+        repository: https://github.com/swashbuck1r/n8n-workflows.git
         ref: main
         path: .n8n-action
 
