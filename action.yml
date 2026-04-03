@@ -30,19 +30,17 @@ outputs:
 runs:
   using: composite
   steps:
-    dump-context:
-    steps:
-      - uses: docker://golang:1.20.3-alpine3.17
-        name: Dump GitHub context
-        env:
-          CLOUDBEES_CONTEXT: ${{ toJSON(cloudbees) }}
-          ACTION_CONTEXT: ${{ toJSON(action) }}
-        run: |
-          echo "----- ACTION -----"
-          echo "$ACTION_CONTEXT"
-          echo "----- CLOUDBEES -----"
-          echo "cloudbees.scm.sha: ${{ cloudbees.scm.sha }}"
-          echo "$CLOUDBEES_CONTEXT"
+    - uses: docker://golang:1.20.3-alpine3.17
+      name: Dump action and cloudbees context
+      env:
+        CLOUDBEES_CONTEXT: ${{ toJSON(cloudbees) }}
+        ACTION_CONTEXT: ${{ toJSON(action) }}
+      run: |
+        echo "----- ACTION -----"
+        echo "$ACTION_CONTEXT"
+        echo "----- CLOUDBEES -----"
+        echo "cloudbees.scm.sha: ${{ cloudbees.scm.sha }}"
+        echo "$CLOUDBEES_CONTEXT"
     - name: Checkout action source
       uses: cloudbees-io/checkout@v2
       with:
