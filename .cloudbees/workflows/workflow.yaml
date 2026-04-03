@@ -22,12 +22,12 @@ jobs:
         uses: docker://docker.n8n.io/n8nio/n8n:latest
         with:
           entrypoint: /usr/local/bin/node
-          args: /workspace/run-workflow.js
+          args: ${{ cloudbees.workspace }}/run-workflow.js
         env:
           WORKFLOW_NAME: ${{ inputs.workflow_name }}
           NAME: ${{ inputs.input_name }}
           N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
-          WORKFLOWS_DIR: /workspace/n8n-workflows
+          WORKFLOWS_DIR: ${{ cloudbees.workspace }}/n8n-workflows
 
       - name: Display results summary
         uses: docker://alpine:latest

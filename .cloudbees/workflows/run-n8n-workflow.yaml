@@ -23,7 +23,7 @@ jobs:
           WORKFLOW_NAME: ${{ inputs.workflow_name }}
           NAME: ${{ inputs.input_name }}
           N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
-          WORKFLOWS_DIR: /workspace/n8n-workflows
+          WORKFLOWS_DIR: ${{ cloudbees.workspace }}/n8n-workflows
       - name: Display results summary
         uses: docker://alpine:latest
         run: |
