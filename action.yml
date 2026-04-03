@@ -41,8 +41,13 @@ runs:
       name: Execute n8n workflow
       uses: docker://docker.n8n.io/n8nio/n8n:latest
       run: |
-        # Parse parameters JSON and export as environment variables
-        echo '${{ inputs.parameters }}' | jq -r 'to_entries[] | "export \(.key)=\(.value | @sh)"' > /tmp/params.env
+        # Parse parameters JSON and export as environment variables using Node.js
+        /usr/local/bin/node -e "
+          const params = ${{ inputs.parameters }};
+          for (const [key, value] of Object.entries(params)) {
+            console.log(\`export \${key}='\${value}'\`);
+          }
+        " > /tmp/params.env
         . /tmp/params.env
 
         # Set required n8n environment variables
