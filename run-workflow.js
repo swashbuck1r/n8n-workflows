@@ -50,48 +50,83 @@ function importWorkflows() {
   }
 
   if (!fs.existsSync(WORKFLOWS_DIR)) {
-    log(`Workflows directory not found: ${WORKFLOWS_DIR}`);
-    log('Skipping import step');
+    error(`Workflows directory not found: ${WORKFLOWS_DIR}`);
+    log('Contents of parent directory:');
+    try {
+      const parent = require('path').dirname(WORKFLOWS_DIR);
+      const contents = fs.readdirSync(parent);
+      contents.forEach(item => log(`  - ${item}`));
+    } catch (e) {
+      log(`  Could not list parent directory: ${e.message}`);
+    }
+    log('Skipping import step - workflows will need to exist in database');
     return;
   }
 
   const files = fs.readdirSync(WORKFLOWS_DIR).filter(f => f.endsWith('.json'));
   if (files.length === 0) {
-    log('No workflow JSON files found to import');
+    error('No workflow JSON files found to import');
+    log(`Directory ${WORKFLOWS_DIR} exists but contains no .json files`);
+    const allFiles = fs.readdirSync(WORKFLOWS_DIR);
+    log(`Contents: ${allFiles.join(', ')}`);
     return;
   }
 
   log(`Importing workflows from ${WORKFLOWS_DIR}...`);
+  log(`Found ${files.length} workflow files: ${files.join(', ')}`);
+
   try {
-    exec(`n8n import:workflow --input=${WORKFLOWS_DIR} --separate`, { silent: true });
-    log(`Workflows imported successfully (${files.length} files)`);
+    const output = exec(`n8n import:workflow --input=${WORKFLOWS_DIR} --separate`, { silent: true, allowError: true });
+    if (output.includes('Successfully imported')) {
+      log(`Workflows imported successfully`);
+    } else {
+      log('Import output:');
+      console.log(output);
+    }
   } catch (err) {
     // Import might fail if workflows already exist, which is fine
-    log('Import completed (workflows may have already existed)');
+    log('Import completed with errors (workflows may have already existed)');
+    if (err.stderr) {
+      log('Import stderr:');
+      console.log(err.stderr);
+    }
   }
 }
 
 function findWorkflowId(workflowName) {
   log(`Finding workflow: ${workflowName}`);
 
-  const output = exec('n8n list:workflow', { silent: true, allowError: true });
-  const lines = output.split('\n');
+  try {
+    const output = exec('n8n list:workflow', { silent: true, allowError: true });
+    const lines = output.split('\n');
 
-  for (const line of lines) {
-    if (line.includes(workflowName)) {
-      // Format: "ID|Name" or just "ID Name"
-      const parts = line.trim().split(/[|\s]+/);
-      if (parts.length > 0) {
-        const id = parts[0];
-        log(`Found workflow ID: ${id}`);
-        return id;
+    log(`List output (${lines.length} lines):`);
+    for (const line of lines) {
+      if (line.trim() && !line.includes('Task Broker') && !line.includes('Python')) {
+        log(`  ${line}`);
       }
     }
+
+    for (const line of lines) {
+      if (line.includes(workflowName)) {
+        // Format: "ID|Name" or just "ID Name"
+        const parts = line.trim().split(/[|\s]+/);
+        if (parts.length > 0) {
+          const id = parts[0];
+          log(`Found workflow ID: ${id}`);
+          return id;
+        }
+      }
+    }
+
+    error(`Workflow "${workflowName}" not found`);
+    log('\nAvailable workflows:');
+    console.log(output);
+  } catch (err) {
+    error(`Failed to list workflows: ${err.message}`);
+    throw err;
   }
 
-  error(`Workflow "${workflowName}" not found`);
-  log('\nAvailable workflows:');
-  console.log(output);
   process.exit(1);
 }
 
@@ -198,8 +233,15 @@ function extractResultData(execution) {
 
 function saveResults(execution, resultData) {
   // Create output directory if it doesn't exist
-  if (!fs.existsSync(OUTPUT_DIR)) {
-    fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+  log(`Output directory: ${OUTPUT_DIR}`);
+  try {
+    if (!fs.existsSync(OUTPUT_DIR)) {
+      fs.mkdirSync(OUTPUT_DIR, { recursive: true });
+      log(`Created output directory: ${OUTPUT_DIR}`);
+    }
+  } catch (err) {
+    error(`Failed to create output directory: ${err.message}`);
+    error(`This may cause results to not be saved properly`);
   }
 
   log(`Saving results to ${OUTPUT_DIR}`);
