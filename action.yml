@@ -34,7 +34,7 @@ runs:
       uses: cloudbees-io/checkout@v2
       with:
         repository: https://github.com/swashbuck1r/n8n-workflows.git
-        ref: ${{ action.scm.sha }}
+        ref: main
         path: .n8n-action
 
     - id: execute
