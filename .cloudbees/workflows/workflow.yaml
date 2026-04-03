@@ -13,7 +13,7 @@ jobs:
 
       - name: Execute n8n workflow
         id: execute-workflow
-        uses: swashbuck1r/n8n-workflows@v1
+        uses: swashbuck1r/n8n-workflows@main
         with:
           workflows-dir: n8n-workflows
           workflow-name: "hello-workflow"
