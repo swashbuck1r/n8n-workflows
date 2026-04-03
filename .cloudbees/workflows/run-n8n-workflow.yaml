@@ -18,7 +18,7 @@ jobs:
       - name: Execute n8n workflow
         uses: docker://docker.n8n.io/n8nio/n8n:latest
         run: |
-          /usr/local/bin/node /workspace/run-workflow.js
+          /usr/local/bin/node ${{ cloudbees.workspace }}/run-workflow.js
         env:
           WORKFLOW_NAME: ${{ inputs.workflow_name }}
           NAME: ${{ inputs.input_name }}
