@@ -17,9 +17,8 @@ jobs:
         uses: cloudbees-io/checkout@v1
       - name: Execute n8n workflow
         uses: docker://docker.n8n.io/n8nio/n8n:latest
-        with:
-          entrypoint: ""
-          cmd: /usr/local/bin/node /workspace/run-workflow.js
+        run: |
+          /usr/local/bin/node /workspace/run-workflow.js
         env:
           WORKFLOW_NAME: ${{ inputs.workflow_name }}
           NAME: ${{ inputs.input_name }}
