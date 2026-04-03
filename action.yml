@@ -41,6 +41,7 @@ runs:
       name: Execute n8n workflow
       uses: docker://docker.n8n.io/n8nio/n8n:latest
       run: |
+        echo "ACTION SHA: ${{ action.scm.sha }}"
         # Parse parameters JSON and export as environment variables using Node.js
         echo '${{ inputs.parameters }}' | /usr/local/bin/node -e "
           const fs = require('fs');
