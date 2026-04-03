@@ -1,0 +1,121 @@
+{
+  "active": false,
+  "activeVersionId": null,
+  "connections": {
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Code in JavaScript",
+            "type": "main"
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "index": 0,
+            "node": "Edit Fields",
+            "type": "main"
+          }
+        ]
+      ]
+    }
+  },
+  "createdAt": "2026-04-02T22:28:52.822Z",
+  "description": null,
+  "id": "Raqzqu66GkRc9z6I",
+  "isArchived": false,
+  "meta": {
+    "instanceId": "3577f2173012f81b0d69e4d9c89d960c3b38ac1b89fcdd98e5296494acd7056e"
+  },
+  "name": "hello-workflow",
+  "nodes": [
+    {
+      "id": "03868016-7ca5-4224-b27e-75d76cb8bd4c",
+      "name": "Code in JavaScript",
+      "parameters": {
+        "jsCode": "let result = {\n  json: {\n    message: \"Hello world\",\n    name: $json.name\n  }\n};\n\nreturn result;",
+        "mode": "runOnceForEachItem"
+      },
+      "position": [
+        416,
+        0
+      ],
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2
+    },
+    {
+      "id": "a2def0d4-a643-4331-bb05-f4e2ce5506c2",
+      "name": "When clicking ‘Execute workflow’",
+      "parameters": {},
+      "position": [
+        0,
+        0
+      ],
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1
+    },
+    {
+      "id": "a1a7f3bb-0ed1-4762-a8a8-d6213c32595e",
+      "name": "Edit Fields",
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "53b8c844-36a0-488a-aa85-a2e6f1ea308e",
+              "name": "name",
+              "type": "string",
+              "value": "={{ $env.NAME }}"
+            }
+          ]
+        },
+        "includeOtherFields": "=",
+        "options": {}
+      },
+      "position": [
+        208,
+        0
+      ],
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4
+    }
+  ],
+  "pinData": {},
+  "settings": {
+    "binaryMode": "separate",
+    "executionOrder": "v1"
+  },
+  "shared": [
+    {
+      "createdAt": "2026-04-02T23:51:11.206Z",
+      "project": {
+        "createdAt": "2026-04-02T23:51:10.546Z",
+        "creatorId": "b0265cc6-468a-40f5-ad52-c0a52d6f5ee7",
+        "description": null,
+        "icon": null,
+        "id": "W2tK4MSytooSFaMR",
+        "name": "Unnamed Project",
+        "type": "personal",
+        "updatedAt": "2026-04-02T23:51:10.546Z"
+      },
+      "projectId": "W2tK4MSytooSFaMR",
+      "role": "workflow:owner",
+      "updatedAt": "2026-04-02T23:51:11.206Z",
+      "workflowId": "Raqzqu66GkRc9z6I"
+    }
+  ],
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-04-02T22:29:25.433Z",
+  "versionCounter": 5,
+  "versionId": "a58f643d-c62a-4ef2-8cd5-a5222dc87841",
+  "versionMetadata": {
+    "description": null,
+    "name": null
+  }
+}

@@ -1,0 +1,27 @@
+apiVersion: automation.cloudbees.io/v1alpha1
+kind: workflow
+name: Test Library
+
+on:
+  push:
+    branches:
+      - "**"
+permissions:
+  scm-token-own: read
+  scm-token-org: read
+jobs:
+  run-n8n-workflow:
+    steps:
+      - name: Checkout code
+        uses: cloudbees-io/checkout@v2
+      - id: n8n
+        name: Run n8n workflow
+        uses: docker://n8nio/n8n:latest
+        env:
+          NAME: John
+        with:
+          entrypoint: n8n
+          args: |
+            execute
+            --file
+            ${{ cloudbees.workspace }}/hello-workflow.json
