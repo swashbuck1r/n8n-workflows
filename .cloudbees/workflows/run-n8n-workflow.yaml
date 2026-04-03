@@ -16,6 +16,7 @@ jobs:
       - name: Checkout code
         uses: cloudbees-io/checkout@v1
       - name: Execute n8n workflow
+        id: execute-workflow
         uses: docker://docker.n8n.io/n8nio/n8n:latest
         run: |
           /usr/local/bin/node ${{ cloudbees.workspace }}/run-workflow.js
@@ -28,19 +29,19 @@ jobs:
         uses: docker://ghcr.io/helmfile/helmfile:v1.1.2
         run: |
           echo "=== Execution Summary ==="
-          cat $CLOUDBEES_OUTPUTS/summary.json | jq '.'
+          cat "${{ steps.execute-workflow.outputs.summary-json }}" | jq '.'
       - name: Display result data
         uses: docker://ghcr.io/helmfile/helmfile:v1.1.2
         run: |
           echo "=== Result Data ==="
-          cat $CLOUDBEES_OUTPUTS/result.json | jq '.data'
+          cat "${{ steps.execute-workflow.outputs.result-json }}" | jq '.data'
       - name: Check execution success
         uses: docker://ghcr.io/helmfile/helmfile:v1.1.2
         run: |
-          SUCCESS=$(cat $CLOUDBEES_OUTPUTS/summary.json | jq -r '.success')
+          SUCCESS=$(cat "${{ steps.execute-workflow.outputs.summary-json }}" | jq -r '.success')
           if [ "$SUCCESS" != "true" ]; then
             echo "Workflow execution failed"
-            cat $CLOUDBEES_OUTPUTS/execution.json | jq '.data.resultData.error'
+            cat "${{ steps.execute-workflow.outputs.execution-json }}" | jq '.data.resultData.error'
             exit 1
           fi
           echo "✓ Workflow executed successfully"

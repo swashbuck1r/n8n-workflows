@@ -21,13 +21,13 @@ make run-ci WORKFLOW_NAME=hello-workflow
 
 ### 4. View the Results
 ```bash
-cat outputs/summary.json | jq '.'
-cat outputs/result.json | jq '.data'
+cat outputs/summary-json | jq '.'
+cat outputs/result-json | jq '.data'
 ```
 
 ## Expected Output Structure
 
-### outputs/summary.json
+### outputs/summary-json
 High-level execution metadata:
 ```json
 {
@@ -40,7 +40,7 @@ High-level execution metadata:
 }
 ```
 
-### outputs/result.json
+### outputs/result-json
 Workflow output data:
 ```json
 {
@@ -58,7 +58,7 @@ Workflow output data:
 }
 ```
 
-### outputs/execution.json
+### outputs/execution-json
 Full execution details (for debugging).
 
 ## Editing Workflows
@@ -146,7 +146,7 @@ ls -lh n8n-workflows/
 
 ### Check execution logs
 ```bash
-cat outputs/execution.json | jq '.data.resultData'
+cat outputs/execution-json | jq '.data.resultData'
 ```
 
 ### Python warning
@@ -162,7 +162,7 @@ Database migration messages during import are normal on first run.
 make clean && make import-workflows && make run-ci WORKFLOW_NAME=hello-workflow
 
 # View result
-cat outputs/result.json | jq '.data[0].json'
+cat outputs/result-json | jq '.data[0].json'
 
 # Edit, export, and test
 make start-server

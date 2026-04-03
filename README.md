@@ -117,7 +117,7 @@ jobs:
 
 The workflow execution creates three files in `$CLOUDBEES_OUTPUTS`:
 
-1. **`summary.json`** - High-level execution summary
+1. **`summary-json`** - High-level execution summary
    ```json
    {
      "workflow": "hello-workflow",
@@ -130,7 +130,7 @@ The workflow execution creates three files in `$CLOUDBEES_OUTPUTS`:
    }
    ```
 
-2. **`result.json`** - Workflow output data
+2. **`result-json`** - Workflow output data
    ```json
    {
      "success": true,
@@ -146,7 +146,9 @@ The workflow execution creates three files in `$CLOUDBEES_OUTPUTS`:
    }
    ```
 
-3. **`execution.json`** - Full execution details (for debugging)
+3. **`execution-json`** - Full execution details (for debugging)
+
+Note: Filenames use hyphens instead of dots for compatibility with CloudBees step outputs.
 
 ## Makefile Targets
 

@@ -170,6 +170,12 @@ run-ci:
 	@echo ""
 	@echo "Results saved to $(OUTPUT_DIR)/"
 	@ls -lh $(OUTPUT_DIR)/
+	@echo ""
+	@echo "Quick view:"
+	@if [ -f $(OUTPUT_DIR)/result-json ]; then \
+		echo "Result:"; \
+		cat $(OUTPUT_DIR)/result-json | jq '.data[0].json' 2>/dev/null || cat $(OUTPUT_DIR)/result-json; \
+	fi
 
 # Clean n8n data directory
 clean:

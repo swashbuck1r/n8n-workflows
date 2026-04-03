@@ -247,12 +247,12 @@ function saveResults(execution, resultData) {
   log(`Saving results to ${OUTPUT_DIR}`);
 
   // Save result data (the actual workflow output)
-  const resultFile = path.join(OUTPUT_DIR, 'result.json');
+  const resultFile = path.join(OUTPUT_DIR, 'result-json');
   fs.writeFileSync(resultFile, JSON.stringify(resultData, null, 2));
   log(`Result data saved to: ${resultFile}`);
 
   // Save execution details (full execution info)
-  const executionFile = path.join(OUTPUT_DIR, 'execution.json');
+  const executionFile = path.join(OUTPUT_DIR, 'execution-json');
   fs.writeFileSync(executionFile, JSON.stringify(execution, null, 2));
   log(`Execution details saved to: ${executionFile}`);
 
@@ -268,7 +268,7 @@ function saveResults(execution, resultData) {
     resultDataCount: resultData.data.length
   };
 
-  const summaryFile = path.join(OUTPUT_DIR, 'summary.json');
+  const summaryFile = path.join(OUTPUT_DIR, 'summary-json');
   fs.writeFileSync(summaryFile, JSON.stringify(summary, null, 2));
   log(`Summary saved to: ${summaryFile}`);
 
