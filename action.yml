@@ -40,11 +40,10 @@ runs:
     - id: execute
       name: Execute n8n workflow
       uses: docker://docker.n8n.io/n8nio/n8n:latest
-      shell: bash
       run: |
         # Parse parameters JSON and export as environment variables
         echo '${{ inputs.parameters }}' | jq -r 'to_entries[] | "export \(.key)=\(.value | @sh)"' > /tmp/params.env
-        source /tmp/params.env
+        . /tmp/params.env
 
         # Set required n8n environment variables
         export WORKFLOW_NAME='${{ inputs.workflow-name }}'
