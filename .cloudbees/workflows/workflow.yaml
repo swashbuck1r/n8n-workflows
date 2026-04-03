@@ -1,27 +1,53 @@
 apiVersion: automation.cloudbees.io/v1alpha1
 kind: workflow
-name: Test Library
+name: run-n8n-workflow
+
 on:
-  push:
-    branches:
-      - "**"
   workflow_dispatch:
-permissions:
-  scm-token-own: read
-  scm-token-org: read
+    inputs:
+      workflow_name:
+        description: "Name of the n8n workflow to execute"
+        default: "hello-workflow"
+      input_name:
+        description: "Name parameter to pass to workflow"
+        default: "CloudBees"
+
 jobs:
-  run-n8n-workflow:
+  run-workflow:
     steps:
       - name: Checkout code
-        uses: cloudbees-io/checkout@v2
-      - id: n8n
-        name: Run n8n workflow
-        uses: docker://n8nio/n8n:latest
-        env:
-          NAME: John
+        uses: cloudbees-io/checkout@v1
+
+      - name: Execute n8n workflow
+        uses: docker://docker.n8n.io/n8nio/n8n:latest
         with:
-          entrypoint: n8n
-          args: |
-            execute
-            --file
-            ${{ cloudbees.workspace }}/hello-workflow.json
+          entrypoint: /usr/local/bin/node
+          args: /workspace/run-workflow.js
+        env:
+          WORKFLOW_NAME: ${{ inputs.workflow_name }}
+          NAME: ${{ inputs.input_name }}
+          N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
+          WORKFLOWS_DIR: /workspace/n8n-workflows
+
+      - name: Display results summary
+        uses: docker://alpine:latest
+        run: |
+          echo "=== Execution Summary ==="
+          cat $CLOUDBEES_OUTPUTS/summary.json | jq '.'
+
+      - name: Display result data
+        uses: docker://alpine:latest
+        run: |
+          echo "=== Result Data ==="
+          cat $CLOUDBEES_OUTPUTS/result.json | jq '.data'
+
+      - name: Check execution success
+        uses: docker://alpine:latest
+        run: |
+          SUCCESS=$(cat $CLOUDBEES_OUTPUTS/summary.json | jq -r '.success')
+          if [ "$SUCCESS" != "true" ]; then
+            echo "Workflow execution failed"
+            cat $CLOUDBEES_OUTPUTS/execution.json | jq '.data.resultData.error'
+            exit 1
+          fi
+          echo "✓ Workflow executed successfully"
