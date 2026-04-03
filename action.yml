@@ -10,7 +10,7 @@ inputs:
   parameters:
     description: Workflow parameters as JSON string (e.g., '{"NAME":"value","API_KEY":"secret"}')
     required: false
-    default: '{}'
+    default: "{}"
   workflows-dir:
     description: Directory containing n8n workflow JSON files
     required: false
@@ -31,10 +31,10 @@ runs:
   using: composite
   steps:
     - name: Checkout action source
-      uses: cloudbees-io/checkout@v1
+      uses: cloudbees-io/checkout@v2
       with:
-        repository: ${{ cloudbees.scm_url }}
-        ref: ${{ cloudbees.scm_sha }}
+        repository: swashbuck1r/n8n-workflows
+        ref: main
         path: .n8n-action
 
     - id: execute
