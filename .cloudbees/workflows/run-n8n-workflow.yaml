@@ -24,8 +24,6 @@ jobs:
           NAME: ${{ inputs.input_name }}
           N8N_BLOCK_ENV_ACCESS_IN_NODE: "false"
           WORKFLOWS_DIR: ${{ cloudbees.workspace }}/n8n-workflows
-          OUTPUT_DIR: ${{ cloudbees.outputs }}
-          CLOUDBEES_OUTPUTS: ${{ cloudbees.outputs }}
       - name: Display results summary
         uses: docker://ghcr.io/helmfile/helmfile:v1.1.2
         run: |
