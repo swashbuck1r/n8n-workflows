@@ -34,10 +34,9 @@ runs:
       name: Dump action and cloudbees context
       env:
         CLOUDBEES_CONTEXT: ${{ toJSON(cloudbees) }}
-        ACTION_CONTEXT: ${{ toJSON(action) }}
       run: |
         echo "----- ACTION -----"
-        echo "$ACTION_CONTEXT"
+        echo "${{ action.scm.sha }}"
         echo "----- CLOUDBEES -----"
         echo "cloudbees.scm.sha: ${{ cloudbees.scm.sha }}"
         echo "$CLOUDBEES_CONTEXT"
