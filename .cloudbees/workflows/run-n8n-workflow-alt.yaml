@@ -6,11 +6,11 @@ on:
   workflow_dispatch:
     inputs:
       workflow_name:
-        description: "Name of the n8n workflow to execute"
-        default: "hello-workflow"
+        type: string
+        default: hello-workflow
       input_name:
-        description: "Name parameter to pass to workflow"
-        default: "CloudBees"
+        type: string
+        default: CloudBees
 
 jobs:
   run-workflow:
